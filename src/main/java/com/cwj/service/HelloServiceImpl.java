@@ -8,4 +8,9 @@ public class HelloServiceImpl implements IHelloService {
     public String sayHello(String name) {
         return name == null ? "hello nobody" : "hello " + name;
     }
+
+    @Override
+    public String sayGuaPi(String name) {
+        return name == null ? "hello nobody" : "guapi " + name;
+    }
 }

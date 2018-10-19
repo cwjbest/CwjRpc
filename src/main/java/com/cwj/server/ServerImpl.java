@@ -33,6 +33,14 @@ public class ServerImpl implements IServer {
         this.port = port;
     }
 
+
+    /**
+     * 使用多线程，主要原因在于socket.accept()、socket.read()、socket.write()三个主要函数都是同步阻塞的，
+     * 当一个连接在处理I/O的时候，系统是阻塞的，如果是单线程的话必然就挂死在那里；但CPU是被释放出来的，开启多线程，
+     * 就可以让CPU去处理更多的事情。其实这也是所有使用多线程的本质：利用多核。当I/O阻塞系统，但CPU空闲的时候，
+     * 可以利用多线程使用CPU资源。
+     * @throws IOException
+     */
     public void start() throws IOException {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(port));
@@ -40,6 +48,7 @@ public class ServerImpl implements IServer {
         try {
             while (true) {
                 ////接收到客户端的连接后封装成task交给线程池
+                //这儿的accept是阻塞的，没办法知道能不能读，只能傻等
                 executor.execute(new ServiceTask(serverSocket.accept()));
             }
         } catch (Exception e) {
@@ -80,6 +89,7 @@ public class ServerImpl implements IServer {
 
             try {
                 //接收client发送的数据
+                //read操作是阻塞的，BIO无法知道能不能读，即使不能读，也会一直占着线程，无法返回
                 input = new ObjectInputStream(client.getInputStream());
                 String serviceName = input.readUTF();
                 String methodName = input.readUTF();
@@ -90,11 +100,17 @@ public class ServerImpl implements IServer {
                 Class serviceClass = serviceRegistry.get(serviceName);
                 if (serviceClass == null)
                     throw new ClassNotFoundException(serviceName + " not found");
+
                 Method method = serviceClass.getMethod(methodName, parameterTypes);
+
+                if (method.getName().equals("sayHello")) {
+                    System.out.println("hello");
+                }
+                if (method.getName().equals("sayGuaPi"))
+                    System.out.println("guapi");
 
                 //调用方法
                 Object result = method.invoke(serviceClass.newInstance(), arguments);
-
                 //返回结果发送给client
                 output = new ObjectOutputStream(client.getOutputStream());
                 output.writeObject(result);

@@ -6,4 +6,5 @@ package com.cwj.service;
  */
 public interface IHelloService {
     String sayHello(String name);
+    String sayGuaPi(String name);
 }
