@@ -12,7 +12,7 @@ import java.net.InetSocketAddress;
 public class RpcClient {
     public static void main(String[] args) {
         IHelloService service = Client.getRemoteProxyObj(IHelloService.class,
-                new InetSocketAddress("localhost", 8088));
+                new InetSocketAddress("localhost", 6666));
         System.out.println(service.sayHello("You look stupid!"));
     }
 }
